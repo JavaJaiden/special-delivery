@@ -151,7 +151,7 @@ button:focus-visible { outline: 3px solid var(--butter); outline-offset: 4px; }
 .env-flipper {
   position: absolute; inset: 0;
   transform-style: preserve-3d;
-  transition: transform .85s cubic-bezier(.55, .05, .25, 1);
+  transition: transform .7s cubic-bezier(.55, .05, .25, 1);
 }
 .envelope.flipped .env-flipper { transform: rotateY(180deg) translateZ(1px); }
 .envelope.settled .env-flipper { transition: none; transform: none; }
@@ -323,7 +323,7 @@ button:focus-visible { outline: 3px solid var(--butter); outline-offset: 4px; }
   color: var(--paper);
 }
 .hint svg { width: 16px; height: 16px; fill: var(--butter); animation: beat 1.2s ease-in-out infinite; }
-.scene-envelope.leaving { animation: envOut .55s cubic-bezier(.5, 0, .75, 0) forwards; }
+.scene-envelope.leaving { animation: envOut .42s cubic-bezier(.5, 0, .75, 0) forwards; }
 
 /* ---------- the letter card ---------- */
 .scene-card { gap: 18px; }
@@ -1186,7 +1186,7 @@ button:focus-visible { outline: 3px solid var(--butter); outline-offset: 4px; }
     envScene.classList.add('opening');
     env.classList.add('flipped');
     Sound.swoosh();
-    await wait(880);
+    await wait(720);
     env.classList.add('settled');
     await wait(140);
     const s = $('#seal').getBoundingClientRect();
@@ -1196,20 +1196,19 @@ button:focus-visible { outline: 3px solid var(--butter); outline-offset: 4px; }
       count: 26, power: 7, shapes: ['heart', 'dot'], colors: ['cherry', 'deep', 'blush'],
       size: [6, 11], life: [40, 70], gravity: 0.18,
     });
-    await wait(360);
+    await wait(300);
     env.classList.add('open');
     Sound.swoosh(0.7);
-    await wait(560);
+    await wait(460);
     env.classList.add('out');
-    await wait(1000);
+    await wait(600);
     envScene.classList.add('leaving');
-    await wait(560);
+    await wait(400);
     envScene.hidden = true;
     cardScene.classList.add('entering');
     cardScene.hidden = false;
     window.scrollTo(0, 0);
-    await wait(500);
-    if (window.NowPlaying) await Promise.race([window.NowPlaying.settled(), sleep(12000)]);
+    await wait(150);
     typeLetter();
   }
   wrap.addEventListener('animationend', (e) => {
@@ -1250,10 +1249,10 @@ button:focus-visible { outline: 3px solid var(--butter); outline-offset: 4px; }
       if (skipTyping) break;
       c.el.classList.add('on');
       c.el.appendChild(caret);
-      let d = 20 + Math.random() * 20;
-      if (',;'.includes(c.ch)) d += 160;
-      if ('.!?…'.includes(c.ch)) d += 260;
-      if (c.end) d += 320;
+      let d = 14 + Math.random() * 12;
+      if (',;'.includes(c.ch)) d += 90;
+      if ('.!?…'.includes(c.ch)) d += 150;
+      if (c.end) d += 180;
       await sleep(d);
     }
     chars.forEach((c) => c.el.classList.add('on'));
@@ -1547,6 +1546,7 @@ button:focus-visible { outline: 3px solid var(--butter); outline-offset: 4px; }
 }
 :where(.np) button, :where(.np) a { font: inherit; color: inherit; -webkit-tap-highlight-color: transparent; }
 .np button:focus-visible, .np a:focus-visible, .np-track:focus-visible { outline: 2px solid var(--np-fg); outline-offset: 3px; }
+.np-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .np-glass {
   background: linear-gradient(var(--np-glass-hi), transparent 40%), var(--np-glass);
   border: .5px solid var(--np-line);
@@ -1566,9 +1566,9 @@ button:focus-visible { outline: 3px solid var(--butter); outline-offset: 4px; }
   transition: opacity .25s ease, transform .35s cubic-bezier(.34, 1.56, .64, 1);
 }
 .np[data-state="open"] .np-pill { opacity: 0; transform: scale(.7); pointer-events: none; }
-.np:not(.was-opened) .np-pill { animation: np-call 2.4s ease-in-out infinite; }
+.np:not(.is-playing) .np-pill { animation: np-call 2.4s ease-in-out infinite; }
 @keyframes np-call { 0%, 100% { box-shadow: 0 18px 40px -16px var(--np-shade), 0 0 0 0 rgba(255, 255, 255, 0); } 50% { box-shadow: 0 18px 40px -16px var(--np-shade), 0 0 0 7px rgba(255, 255, 255, .22); } }
-.np-pill-art { flex: none; width: 32px; height: 32px; border-radius: 9px; overflow: hidden; }
+.np-pill-art { flex: none; width: 32px; height: 32px; border-radius: 8px; overflow: hidden; }
 .np-pill-text { display: grid; min-width: 0; line-height: 1.15; }
 .np-pill-title { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .np-pill-sub { font-size: 11px; color: var(--np-fg2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1584,9 +1584,9 @@ button:focus-visible { outline: 3px solid var(--butter); outline-offset: 4px; }
 .np-card {
   position: absolute; top: 0; right: 0;
   width: min(344px, calc(100vw - 24px));
-  padding: 14px 14px 14px;
+  padding: 14px;
   border-radius: 24px;
-  display: grid; gap: 10px;
+  display: grid; gap: 12px;
   transform-origin: 100% 0;
   transition: opacity .25s ease, transform .4s cubic-bezier(.34, 1.4, .64, 1), visibility 0s linear 0s;
 }
@@ -1616,65 +1616,66 @@ button:focus-visible { outline: 3px solid var(--butter); outline-offset: 4px; }
 .np-slide {
   flex: 0 0 100%; min-width: 0;
   scroll-snap-align: center;
-  display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 14px; align-items: center;
+  display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 14px; align-items: center;
   padding: 2px 4px;
   user-select: none; -webkit-user-select: none;
 }
+.np-cover {
+  position: relative; display: block;
+  width: 96px; height: 96px; border-radius: 12px; overflow: hidden;
+  background: var(--np-glass-hi);
+  box-shadow: 0 10px 22px -10px var(--np-shade);
+}
+.np-cover img { display: block; width: 100%; height: 100%; object-fit: cover; -webkit-user-drag: none; }
+.np-pill-art .np-cover { width: 32px; height: 32px; border-radius: 8px; box-shadow: none; }
+/* shown only if the cover image can't load (e.g. in a sandboxed preview) */
 .np-art {
-  position: relative;
-  display: block;
-  width: 92px; height: 92px; border-radius: 16px; overflow: hidden;
+  position: absolute; inset: 0; display: block;
   background: radial-gradient(120% 120% at 20% 10%, var(--a) 0%, var(--b) 70%, var(--c) 100%);
-  box-shadow: 0 8px 18px -8px var(--np-shade);
 }
-.np-art::after {
-  content: ""; position: absolute; inset: 0;
-  background: repeating-linear-gradient(0deg, transparent 0 3px, rgba(255, 255, 255, .06) 3px 4px);
-}
-.np-art svg { position: absolute; inset: 20%; width: 60%; height: 60%; fill: none; stroke: var(--g); stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
-.np-art .np-art-num { position: absolute; left: 8px; bottom: 6px; font-size: 10px; font-weight: 700; letter-spacing: .08em; color: var(--g); opacity: .8; }
-.np-pill-art .np-art { width: 32px; height: 32px; border-radius: 9px; box-shadow: none; }
-.np-pill-art .np-art-num { display: none; }
+.np-art svg { position: absolute; inset: 22%; width: 56%; height: 56%; fill: none; stroke: var(--g); stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
 .np-meta { display: grid; gap: 3px; min-width: 0; }
 .np-title { font-size: 18px; font-weight: 700; letter-spacing: -.01em; line-height: 1.15; overflow-wrap: anywhere; }
 .np-artist { font-size: 14px; color: var(--np-fg2); }
 .np-album { font-size: 12px; color: var(--np-fg3); font-variant-numeric: tabular-nums; }
 
-.np-nav { display: flex; align-items: center; justify-content: center; gap: 10px; }
-.np-arrow {
-  width: 26px; height: 26px; display: grid; place-items: center;
-  border: 0; border-radius: 50%; background: none; cursor: pointer; color: var(--np-fg2);
+/* controls: play, then arrows with dots between */
+.np-controls { display: flex; align-items: center; gap: 12px; padding-inline: 4px; }
+.np-play {
+  position: relative; flex: none;
+  width: 44px; height: 44px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--np-glass-hi);
+  box-shadow: inset 0 0 0 .5px var(--np-line);
+  color: var(--np-fg);
+  text-decoration: none;
 }
-.np-arrow svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2.4; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.np-play.nudge { animation: np-nudge 1.1s ease-in-out infinite; }
+@keyframes np-nudge { 0%, 100% { box-shadow: inset 0 0 0 .5px var(--np-line), 0 0 0 0 rgba(255, 255, 255, .0); } 50% { box-shadow: inset 0 0 0 .5px var(--np-line), 0 0 0 6px rgba(255, 255, 255, .35); } }
+.np-play-icon { width: 16px; height: 16px; fill: currentColor; margin-left: 2px; }
+/* the real Spotify play button, framed so only its circle shows */
+.np-window { position: absolute; left: 6px; top: 6px; width: 32px; height: 32px; border-radius: 50%; overflow: hidden; }
+#np-embed { position: absolute; left: -258px; top: -40px; width: 300px; height: 80px; }
+#np-embed iframe { display: block; border: 0; }
+.np[data-mode="spotify"] .np-play-icon { visibility: hidden; }
+.np[data-mode="fallback"] .np-window { display: none; }
+.np-nav { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; min-width: 0; }
+.np-arrow {
+  flex: none; width: 30px; height: 30px; display: grid; place-items: center;
+  border: 0; border-radius: 50%; background: none; cursor: pointer; color: var(--np-fg);
+}
+.np-arrow svg { width: 15px; height: 15px; stroke: currentColor; stroke-width: 2.4; fill: none; stroke-linecap: round; stroke-linejoin: round; }
 .np-arrow:disabled { opacity: .25; cursor: default; }
-.np-dots { display: flex; gap: 6px; }
-.np-dot { width: 6px; height: 6px; padding: 0; border: 0; border-radius: 50%; background: var(--np-fg3); cursor: pointer; transition: background .2s, transform .2s; }
+.np-dots { display: flex; gap: 6px; min-width: 0; }
+.np-dot { flex: none; width: 6px; height: 6px; padding: 0; border: 0; border-radius: 50%; background: var(--np-fg3); cursor: pointer; transition: background .2s, transform .2s; }
 .np-dot[aria-current="true"] { background: var(--np-fg); transform: scale(1.25); }
 
-.np-player { position: relative; min-height: 80px; border-radius: 12px; overflow: hidden; background: var(--np-glass-hi); }
-.np-player iframe { display: block; border: 0; border-radius: 12px; }
-.np-player.nudge { animation: np-nudge 1.2s ease-in-out 3; }
-@keyframes np-nudge { 0%, 100% { box-shadow: 0 0 0 0 transparent; } 50% { box-shadow: 0 0 0 3px var(--np-fg); } }
-.np-loading { position: absolute; inset: 0; display: grid; place-items: center; font-size: 12px; color: var(--np-fg3); }
-.np[data-mode="spotify"] .np-loading { display: none; }
-.np-out {
-  display: none;
-  align-items: center; justify-content: center; gap: 8px;
-  min-height: 80px; padding: 12px;
-  text-decoration: none; font-size: 14px; font-weight: 600;
-}
-.np[data-mode="fallback"] .np-out { display: flex; }
-.np[data-mode="fallback"] .np-pick { display: none; }
-.np[data-mode="fallback"] #np-embed, .np[data-mode="fallback"] .np-loading { display: none; }
-.np-out svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2.2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-.np-hint { margin: 0; min-height: 1.3em; padding-inline: 4px; font-size: 12px; line-height: 1.3; color: var(--np-fg2); text-align: center; }
 .np-pick {
   display: flex; align-items: center; justify-content: center; gap: 8px;
   min-height: 46px; padding: 12px 16px;
   border: 0; border-radius: 14px;
   background: var(--np-btn); color: var(--np-btn-fg);
   font-size: 15px; font-weight: 700;
-  text-decoration: none;
   cursor: pointer;
   transition: transform .15s ease;
 }
@@ -1687,7 +1688,7 @@ button:focus-visible { outline: 3px solid var(--butter); outline-offset: 4px; }
 <div class="np" id="np" data-state="closed" data-mode="loading">
   <button class="np-pill np-glass" id="np-pill" type="button" aria-expanded="false">
     <span class="np-pill-art" id="np-pill-art"></span>
-    <span class="np-pill-text"><span class="np-pill-title" id="np-pill-title"></span><span class="np-pill-sub" id="np-pill-sub">Tap to pick our song</span></span>
+    <span class="np-pill-text"><span class="np-pill-title" id="np-pill-title"></span><span class="np-pill-sub" id="np-pill-sub"></span></span>
     <span class="np-eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
   </button>
   <section class="np-card np-glass" id="np-card" aria-label="Pick a song">
@@ -1696,57 +1697,57 @@ button:focus-visible { outline: 3px solid var(--butter); outline-offset: 4px; }
       <button class="np-x" id="np-x" type="button" aria-label="Close the song picker"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M1.5 1.5l9 9M10.5 1.5l-9 9"/></svg></button>
     </header>
     <div class="np-track" id="np-track" tabindex="0" aria-label="Songs. Swipe or use the arrow keys to change."></div>
-    <div class="np-nav">
-      <button class="np-arrow" id="np-prev" type="button" aria-label="Previous song"><svg viewBox="0 0 14 14"><path d="M9 2L4 7l5 5"/></svg></button>
-      <div class="np-dots" id="np-dots"></div>
-      <button class="np-arrow" id="np-next" type="button" aria-label="Next song"><svg viewBox="0 0 14 14"><path d="M5 2l5 5-5 5"/></svg></button>
+    <div class="np-controls">
+      <a class="np-play" id="np-play" href="#" target="_blank" rel="noopener" aria-label="Play">
+        <svg class="np-play-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z"/></svg>
+        <span class="np-window"><span id="np-embed"></span></span>
+      </a>
+      <div class="np-nav">
+        <button class="np-arrow" id="np-prev" type="button" aria-label="Previous song"><svg viewBox="0 0 14 14"><path d="M9 2L4 7l5 5"/></svg></button>
+        <div class="np-dots" id="np-dots"></div>
+        <button class="np-arrow" id="np-next" type="button" aria-label="Next song"><svg viewBox="0 0 14 14"><path d="M5 2l5 5-5 5"/></svg></button>
+      </div>
     </div>
-    <div class="np-player" id="np-player">
-      <div id="np-embed"></div>
-      <span class="np-loading">loading player…</span>
-      <a class="np-out" id="np-out" href="#" target="_blank" rel="noopener">Listen on Spotify <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M5 2h7v7M12 2L3 11"/></svg></a>
-    </div>
-    <p class="np-hint" id="np-hint" aria-live="polite">swipe for more songs</p>
     <button class="np-pick" id="np-pick" type="button">Play this one ♥</button>
+    <p class="np-sr" id="np-status" aria-live="polite"></p>
   </section>
 </div>
 
 <script>
 (() => {
   'use strict';
-  // Songs: titles, albums and Spotify track IDs (verified against Spotify's embed data).
+  // Songs: titles, albums, Spotify track IDs and official cover images (all from Spotify's embed/oEmbed data).
+  const CDN = 'https://image-cdn-ak.spotifycdn.com/image/';
+  const CDN_FA = 'https://image-cdn-fa.spotifycdn.com/image/';
   const TRACKS = [
-    { id: '38tfi9dtBQQ5Wyt7EL0G3z', title: 'My Kind of Woman', album: '2', year: 2012, ms: 190845, glyph: 'heart', art: ['#FFC48C', '#F2706B', '#8E2F4F', '#FFF1E0'] },
-    { id: '3oUn55qKRZ1JFzfQNbJjS1', title: 'I Like Her', album: 'One Wayne G', year: 2023, ms: 136888, glyph: 'bloom', art: ['#FFD9EC', '#C48BD9', '#3F2A63', '#FFF6FC'] },
-    { id: '2tpApbNkMvjEflWib6dthR', title: 'Still Together', album: '2', year: 2012, ms: 219370, glyph: 'rings', art: ['#FFD7A8', '#E88D72', '#5F3A6E', '#FFF6EA'] },
-    { id: '7nxi8DUA9Iw6nnpGN3M9Zd', title: 'Let My Baby Stay', album: 'Salad Days', year: 2014, ms: 248171, glyph: 'house', art: ['#D9F0A3', '#78C28A', '#1F5C5A', '#F4FFE9'] },
-    { id: '1Snko28yJOihcRVXs9dAo9', title: 'Chamber of Reflection', album: 'Salad Days', year: 2014, ms: 231723, glyph: 'moon', art: ['#B9E3D2', '#4E9A8F', '#1B2F4A', '#EFFFFA'] },
-    { id: '0WiMJIxYYEex2AqhRqzV3u', title: 'For the First Time', album: 'This Old Dog', year: 2017, ms: 182306, glyph: 'spark', art: ['#CFE6FF', '#7CA9DE', '#2B3A6B', '#FFFFFF'] },
-    { id: '17L0mSvHatVjgTgBxfmyjf', title: 'Freaking Out the Neighborhood', album: '2', year: 2012, ms: 173888, glyph: 'zig', art: ['#FFE38A', '#F59E4C', '#7A2E2E', '#FFF8E0'] },
-    { id: '2Vq3gK7jrdN9z440fyypjX', title: 'Ode to Viceroy', album: '2', year: 2012, ms: 233817, glyph: 'curl', art: ['#F5D0E6', '#B97AB4', '#3E2350', '#FFF3FA'] },
-    { id: '0v8J17a6cO0wWp7z731GTd', title: 'One More Love Song', album: 'This Old Dog', year: 2017, ms: 241066, glyph: 'note', art: ['#FFE0D6', '#E4838F', '#4A2140', '#FFF5F1'] },
+    { id: '38tfi9dtBQQ5Wyt7EL0G3z', title: 'My Kind of Woman', album: '2', year: 2012, ms: 190845, cover: CDN + 'ab67616d00001e02ecfde7feaa212a1b60a197a1', glyph: 'heart', art: ['#FFC48C', '#F2706B', '#8E2F4F', '#FFF1E0'] },
+    { id: '3oUn55qKRZ1JFzfQNbJjS1', title: 'I Like Her', album: 'One Wayne G', year: 2023, ms: 136888, cover: CDN_FA + 'ab67616d00001e0240461e96808378ae2787a7e4', glyph: 'heart', art: ['#FFD9EC', '#C48BD9', '#3F2A63', '#FFF6FC'] },
+    { id: '2tpApbNkMvjEflWib6dthR', title: 'Still Together', album: '2', year: 2012, ms: 219370, cover: CDN + 'ab67616d00001e02ecfde7feaa212a1b60a197a1', glyph: 'heart', art: ['#FFD7A8', '#E88D72', '#5F3A6E', '#FFF6EA'] },
+    { id: '7nxi8DUA9Iw6nnpGN3M9Zd', title: 'Let My Baby Stay', album: 'Salad Days', year: 2014, ms: 248171, cover: CDN + 'ab67616d00001e027da53b49b2eb7b7a695d9cca', glyph: 'heart', art: ['#D9F0A3', '#78C28A', '#1F5C5A', '#F4FFE9'] },
+    { id: '1Snko28yJOihcRVXs9dAo9', title: 'Chamber of Reflection', album: 'Salad Days', year: 2014, ms: 231723, cover: CDN_FA + 'ab67616d00001e028b221f2ccf777ae0d4b0db50', glyph: 'heart', art: ['#B9E3D2', '#4E9A8F', '#1B2F4A', '#EFFFFA'] },
+    { id: '0WiMJIxYYEex2AqhRqzV3u', title: 'For the First Time', album: 'This Old Dog', year: 2017, ms: 182306, cover: CDN_FA + 'ab67616d00001e023f7561fb0914fb1f5f101f0a', glyph: 'heart', art: ['#CFE6FF', '#7CA9DE', '#2B3A6B', '#FFFFFF'] },
+    { id: '17L0mSvHatVjgTgBxfmyjf', title: 'Freaking Out the Neighborhood', album: '2', year: 2012, ms: 173888, cover: CDN + 'ab67616d00001e02ecfde7feaa212a1b60a197a1', glyph: 'heart', art: ['#FFE38A', '#F59E4C', '#7A2E2E', '#FFF8E0'] },
+    { id: '2Vq3gK7jrdN9z440fyypjX', title: 'Ode to Viceroy', album: '2', year: 2012, ms: 233817, cover: CDN + 'ab67616d00001e02ecfde7feaa212a1b60a197a1', glyph: 'heart', art: ['#F5D0E6', '#B97AB4', '#3E2350', '#FFF3FA'] },
+    { id: '0v8J17a6cO0wWp7z731GTd', title: 'One More Love Song', album: 'This Old Dog', year: 2017, ms: 241066, cover: CDN_FA + 'ab67616d00001e029f1b21f21b13ff2d3e891f6b', glyph: 'heart', art: ['#FFE0D6', '#E4838F', '#4A2140', '#FFF5F1'] },
   ];
-  const GLYPH = {
-    heart: '<path d="M24 40 C21 37 8 29 8 18 C8 11 14 7 19 7 C22 7 24 9 24 12 C24 9 26 7 29 7 C34 7 40 11 40 18 C40 29 27 37 24 40 Z"/>',
-    bloom: '<circle cx="24" cy="24" r="4.5"/><path d="M24 19.5 C19 9 29 9 24 19.5 M28.5 24 C39 19 39 29 28.5 24 M24 28.5 C29 39 19 39 24 28.5 M19.5 24 C9 29 9 19 19.5 24"/>',
-    rings: '<circle cx="18" cy="24" r="11"/><circle cx="30" cy="24" r="11"/>',
-    house: '<path d="M8 22 L24 9 L40 22 M13 19 V39 H35 V19 M21 39 V29 H27 V39"/>',
-    moon: '<path d="M31 8 A16 16 0 1 0 40 30 A13 13 0 1 1 31 8 Z"/>',
-    spark: '<path d="M24 6 L27 21 L42 24 L27 27 L24 42 L21 27 L6 24 L21 21 Z"/>',
-    zig: '<path d="M10 14 L20 24 L14 26 L26 38 M26 10 L36 20 L30 22 L40 32"/>',
-    curl: '<path d="M12 38 C12 30 22 30 22 23 C22 17 14 17 15 11 M24 38 C24 31 32 31 32 25 C32 20 26 19 27 13"/>',
-    note: '<path d="M18 34 V11 L36 7 V30 M18 34 A5 4 0 1 1 13 30 A5 4 0 0 1 18 34 Z M36 30 A5 4 0 1 1 31 26 A5 4 0 0 1 36 30 Z"/>',
-  };
+  const GLYPH = { heart: '<path d="M24 40 C21 37 8 29 8 18 C8 11 14 7 19 7 C22 7 24 9 24 12 C24 9 26 7 29 7 C34 7 40 11 40 18 C40 29 27 37 24 40 Z"/>' };
   const $ = (id) => document.getElementById(id);
-  const root = $('np'), track = $('np-track'), dotsEl = $('np-dots'), pick = $('np-pick'), hint = $('np-hint');
-  const pillSub = $('np-pill-sub');
-  const pill = $('np-pill'), pillTitle = $('np-pill-title'), pillArt = $('np-pill-art'), out = $('np-out'), player = $('np-player');
+  const root = $('np'), track = $('np-track'), dotsEl = $('np-dots'), pick = $('np-pick'), status = $('np-status');
+  const pill = $('np-pill'), pillTitle = $('np-pill-title'), pillSub = $('np-pill-sub'), pillArt = $('np-pill-art'), play = $('np-play');
   const fmt = (ms) => `${Math.floor(ms / 60000)}:${String(Math.round((ms % 60000) / 1000)).padStart(2, '0')}`;
-  const art = (t, i) => `<span class="np-art" style="--a:${t.art[0]};--b:${t.art[1]};--c:${t.art[2]};--g:${t.art[3]}"><svg viewBox="0 0 48 48" aria-hidden="true">${GLYPH[t.glyph]}</svg><span class="np-art-num">${String(i + 1).padStart(2, '0')}</span></span>`;
+  const fallbackArt = (t) => `<span class="np-art" style="--a:${t.art[0]};--b:${t.art[1]};--c:${t.art[2]};--g:${t.art[3]}"><svg viewBox="0 0 48 48" aria-hidden="true">${GLYPH[t.glyph]}</svg></span>`;
+  const cover = (t) => `<span class="np-cover"><img src="${t.cover}" alt="" loading="eager" draggable="false" referrerpolicy="no-referrer"></span>`;
+  // if a cover can't load, draw a simple tile in its place
+  document.addEventListener('error', (e) => {
+    const img = e.target;
+    if (!(img instanceof HTMLImageElement) || !img.closest('.np-cover')) return;
+    const t = TRACKS.find((x) => x.cover === img.getAttribute('src')) || TRACKS[0];
+    img.replaceWith(document.createRange().createContextualFragment(fallbackArt(t)));
+  }, true);
 
   track.innerHTML = TRACKS.map((t, i) => `
     <div class="np-slide" role="group" aria-label="Song ${i + 1} of ${TRACKS.length}: ${t.title}">
-      ${art(t, i)}
+      ${cover(t)}
       <span class="np-meta">
         <b class="np-title">${t.title}</b>
         <span class="np-artist">Mac DeMarco</span>
@@ -1755,7 +1756,7 @@ button:focus-visible { outline: 3px solid var(--butter); outline-offset: 4px; }
     </div>`).join('');
   dotsEl.innerHTML = TRACKS.map((t, i) => `<button class="np-dot" type="button" aria-label="${t.title}" data-i="${i}"></button>`).join('');
 
-  let idx = 0, mode = 'loading', controller = null, api = null, playing = false, awaiting = false, hintTimer = 0, everOpened = false;
+  let idx = 0, mode = 'loading', controller = null, api = null, playing = false, awaiting = false, nudgeTimer = 0, everOpened = false, pillIdx = -1;
   let settle;
   const settled = new Promise((r) => { settle = r; });
   const uri = (i) => `spotify:track:${TRACKS[i].id}`;
@@ -1768,9 +1769,10 @@ button:focus-visible { outline: 3px solid var(--butter); outline-offset: 4px; }
     $('np-next').disabled = idx === TRACKS.length - 1;
     pillTitle.textContent = t.title;
     pillSub.textContent = playing ? 'Mac DeMarco' : everOpened ? 'Mac DeMarco · tap to play' : 'Tap to pick our song';
-    pillArt.innerHTML = art(t, idx);
+    if (pillIdx !== idx) { pillArt.innerHTML = cover(t); pillIdx = idx; }
     pill.setAttribute('aria-label', `Music: ${t.title} by Mac DeMarco. Change the song`);
-    out.href = link(idx);
+    play.href = link(idx);
+    play.setAttribute('aria-label', mode === 'fallback' ? `Listen to ${t.title} on Spotify` : `Play ${t.title}`);
   }
   function select(i, fromScroll) {
     i = Math.max(0, Math.min(TRACKS.length - 1, i));
@@ -1787,10 +1789,8 @@ button:focus-visible { outline: 3px solid var(--butter); outline-offset: 4px; }
     if (mode === m || mode === 'fallback') return;
     mode = m;
     root.dataset.mode = m;
-    if (m === 'fallback') {
-      $('np-embed').replaceChildren();
-      hint.textContent = 'opens the song in Spotify';
-    }
+    if (m === 'fallback') $('np-embed').replaceChildren();
+    paint();
   }
   function setPlaying(p) {
     playing = p;
@@ -1798,17 +1798,17 @@ button:focus-visible { outline: 3px solid var(--butter); outline-offset: 4px; }
     paint();
     if (p && awaiting) {
       awaiting = false;
-      clearTimeout(hintTimer);
-      player.classList.remove('nudge');
-      hint.textContent = 'good choice ♥';
-      setTimeout(collapse, 700);
+      clearTimeout(nudgeTimer);
+      play.classList.remove('nudge');
+      status.textContent = `Playing ${TRACKS[idx].title}`;
+      setTimeout(collapse, 600);
     }
   }
   function makeController() {
     if (!api || controller || mode === 'fallback') return;
     const host = document.createElement('div');
     $('np-embed').replaceChildren(host);
-    api.createController(host, { uri: uri(idx), width: '100%', height: 80 }, (c) => {
+    api.createController(host, { uri: uri(idx), width: 300, height: 80 }, (c) => {
       controller = c;
       c.addListener('ready', () => setMode('spotify'));
       let lastPos = 0, lastDur = 0;
@@ -1824,25 +1824,24 @@ button:focus-visible { outline: 3px solid var(--butter); outline-offset: 4px; }
     setTimeout(() => { if (mode === 'loading') setMode('fallback'); }, 8000);
   }
   function open() {
-    root.hidden = false;
     root.dataset.state = 'open';
     pill.setAttribute('aria-expanded', 'true');
     if (!everOpened) {
       everOpened = true;
-      root.classList.add('was-opened');
       requestAnimationFrame(() => { track.scrollLeft = idx * track.clientWidth; });
     }
     makeController();
+    paint();
   }
   function collapse() {
-    if (root.hidden) return;
     root.dataset.state = 'closed';
     pill.setAttribute('aria-expanded', 'false');
-    player.classList.remove('nudge');
+    play.classList.remove('nudge');
+    paint();
     settle();
   }
 
-  // Load Spotify's official embed API; if the page can't reach it (e.g. a sandboxed preview), fall back to links.
+  // Spotify's official embed API. If the page can't reach it (a sandboxed preview), the play button links out instead.
   window.onSpotifyIframeApiReady = (IFrameAPI) => {
     api = IFrameAPI;
     if (root.dataset.state === 'open') makeController();
@@ -1877,8 +1876,7 @@ button:focus-visible { outline: 3px solid var(--butter); outline-offset: 4px; }
     drag = null;
     track.classList.remove('dragging');
     const w = Math.max(1, track.clientWidth);
-    const i = Math.abs(moved) > w * 0.18 ? idx + Math.sign(moved) : idx;
-    select(i);
+    select(Math.abs(moved) > w * 0.18 ? idx + Math.sign(moved) : idx);
   };
   track.addEventListener('pointerup', endDrag);
   track.addEventListener('pointercancel', endDrag);
@@ -1890,24 +1888,30 @@ button:focus-visible { outline: 3px solid var(--butter); outline-offset: 4px; }
   $('np-next').addEventListener('click', () => select(idx + 1));
   dotsEl.addEventListener('click', (e) => { const d = e.target.closest('.np-dot'); if (d) select(+d.dataset.i); });
 
+  // the play circle only links out when the Spotify player isn't available
+  play.addEventListener('click', (e) => {
+    if (mode === 'fallback') { setTimeout(collapse, 300); return; }
+    e.preventDefault();
+    if (controller) { try { controller.togglePlay(); } catch (err) { /* tap the circle itself */ } }
+  });
   pill.addEventListener('click', open);
   $('np-x').addEventListener('click', collapse);
   pick.addEventListener('click', () => {
-    if (!controller) { hint.textContent = 'one sec, the player is loading…'; return; }
-    if (playing) { collapse(); return; }
+    if (mode === 'fallback' || playing) { collapse(); return; }
+    if (!controller) { status.textContent = 'The player is still loading'; play.classList.add('nudge'); return; }
     awaiting = true;
-    hint.textContent = 'starting…';
-    try { controller.play(); } catch (e) { /* phone browsers may need a tap on the player itself */ }
-    clearTimeout(hintTimer);
-    hintTimer = setTimeout(() => {
+    try { controller.play(); } catch (e) { /* phone browsers may need a tap on the play button itself */ }
+    clearTimeout(nudgeTimer);
+    nudgeTimer = setTimeout(() => {
       if (!awaiting) return;
-      hint.textContent = 'tap ▶ on the player to start it';
-      player.classList.add('nudge');
-    }, 1600);
+      status.textContent = 'Tap the play button to start the song';
+      play.classList.add('nudge');
+    }, 1500);
   });
-  out.addEventListener('click', () => setTimeout(collapse, 300));
 
-  document.addEventListener('page:first-gesture', () => { if (!everOpened) setTimeout(open, 250); }, { once: true });
+  // opens on its own shortly after the page loads; tapping the page (e.g. the envelope) tucks it away
+  setTimeout(() => { if (!everOpened) open(); }, 900);
+  document.addEventListener('page:first-gesture', () => { if (root.dataset.state === 'open' && !awaiting) collapse(); });
   document.addEventListener('page:answered', collapse);
 
   paint();
