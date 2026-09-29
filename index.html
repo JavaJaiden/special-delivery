@@ -1537,6 +1537,7 @@ button:focus-visible { outline: 3px solid var(--butter); outline-offset: 4px; }
   --np-btn: #FFFFFF;
   --np-btn-fg: #16121A;
   --np-shade: rgba(0, 0, 0, .45);
+  --np-scrim: rgba(0, 0, 0, .38);
   --np-font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "Segoe UI", Roboto, Arial, sans-serif;
 }
 .np {
@@ -1569,9 +1570,10 @@ button:focus-visible { outline: 3px solid var(--butter); outline-offset: 4px; }
   transition: opacity .25s ease, transform .35s cubic-bezier(.34, 1.56, .64, 1);
 }
 .np[data-state="open"] .np-pill { opacity: 0; transform: scale(.7); pointer-events: none; }
-.np:not(.is-playing) .np-pill { animation: np-call 2.4s ease-in-out infinite; }
+.np:not(.has-played) .np-pill { animation: np-call 2.4s ease-in-out infinite; }
 @keyframes np-call { 0%, 100% { box-shadow: 0 18px 40px -16px var(--np-shade), 0 0 0 0 rgba(255, 255, 255, 0); } 50% { box-shadow: 0 18px 40px -16px var(--np-shade), 0 0 0 7px rgba(255, 255, 255, .22); } }
-.np-pill-art { flex: none; width: 32px; height: 32px; border-radius: 8px; overflow: hidden; }
+.np-pill-art { flex: none; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 8px; overflow: hidden; background: none; cursor: pointer; }
+.np-pill-open { display: flex; align-items: center; gap: 9px; min-width: 0; padding: 0; border: 0; background: none; text-align: left; cursor: pointer; }
 .np-pill-text { display: grid; min-width: 0; line-height: 1.15; }
 .np-pill-title { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .np-pill-sub { font-size: 11px; color: var(--np-fg2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1630,6 +1632,21 @@ button:focus-visible { outline: 3px solid var(--butter); outline-offset: 4px; }
   box-shadow: 0 10px 22px -10px var(--np-shade);
 }
 .np-cover img { display: block; width: 100%; height: 100%; object-fit: cover; -webkit-user-drag: none; }
+.np-slide .np-cover { cursor: pointer; }
+/* play / pause state shown on the cover */
+.np-cover-state { position: absolute; inset: 0; z-index: 1; display: grid; place-items: center; background: var(--np-scrim); opacity: 0; transition: opacity .2s ease; pointer-events: none; }
+.np-cover-state svg { width: 34%; height: 34%; fill: var(--np-fg); }
+.np-cover-state .i-pause { display: none; }
+.np.is-playing .np-cover-state .i-play { display: none; }
+.np.is-playing .np-cover-state .i-pause { display: block; }
+.np.has-played:not(.is-playing) .np-pill-art .np-cover-state,
+.np.has-played:not(.is-playing) .np-slide.is-loaded .np-cover-state { opacity: 1; }
+@media (hover: hover) {
+  .np.is-playing .np-pill-art:hover .np-cover-state,
+  .np.is-playing .np-slide.is-loaded .np-cover:hover .np-cover-state { opacity: 1; }
+}
+.np-cover.flash .np-cover-state { animation: np-flash .7s ease-out; }
+@keyframes np-flash { 0% { opacity: 1; } 100% { opacity: 0; } }
 .np-pill-art .np-cover { width: 32px; height: 32px; border-radius: 8px; box-shadow: none; }
 /* shown only if the cover image can't load (e.g. in a sandboxed preview) */
 .np-art {
@@ -1683,11 +1700,13 @@ button:focus-visible { outline: 3px solid var(--butter); outline-offset: 4px; }
 </style>
 
 <div class="np" id="np" data-state="closed" data-mode="loading">
-  <button class="np-pill np-glass" id="np-pill" type="button" aria-expanded="false">
-    <span class="np-pill-art" id="np-pill-art"></span>
-    <span class="np-pill-text"><span class="np-pill-title" id="np-pill-title"></span><span class="np-pill-sub" id="np-pill-sub"></span></span>
-    <span class="np-eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-  </button>
+  <div class="np-pill np-glass" id="np-pill">
+    <button class="np-pill-art" id="np-pill-art" type="button" aria-label="Pick a song"></button>
+    <button class="np-pill-open" id="np-pill-open" type="button" aria-expanded="false">
+      <span class="np-pill-text"><span class="np-pill-title" id="np-pill-title"></span><span class="np-pill-sub" id="np-pill-sub"></span></span>
+      <span class="np-eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+    </button>
+  </div>
   <section class="np-card np-glass" id="np-card" aria-label="Pick a song">
     <header class="np-head">
       <p class="np-kicker">Pick our song</p>
@@ -1731,10 +1750,12 @@ button:focus-visible { outline: 3px solid var(--butter); outline-offset: 4px; }
   const GLYPH = { heart: '<path d="M24 40 C21 37 8 29 8 18 C8 11 14 7 19 7 C22 7 24 9 24 12 C24 9 26 7 29 7 C34 7 40 11 40 18 C40 29 27 37 24 40 Z"/>' };
   const $ = (id) => document.getElementById(id);
   const root = $('np'), track = $('np-track'), dotsEl = $('np-dots'), pick = $('np-pick'), status = $('np-status');
+  const pillOpen = $('np-pill-open');
   const pill = $('np-pill'), pillTitle = $('np-pill-title'), pillSub = $('np-pill-sub'), pillArt = $('np-pill-art'), pickLink = $('np-pick-link'), embed = $('np-embed');
   const fmt = (ms) => `${Math.floor(ms / 60000)}:${String(Math.round((ms % 60000) / 1000)).padStart(2, '0')}`;
   const fallbackArt = (t) => `<span class="np-art" style="--a:${t.art[0]};--b:${t.art[1]};--c:${t.art[2]};--g:${t.art[3]}"><svg viewBox="0 0 48 48" aria-hidden="true">${GLYPH[t.glyph]}</svg></span>`;
-  const cover = (t) => `<span class="np-cover"><img src="${t.cover}" alt="" loading="eager" draggable="false" referrerpolicy="no-referrer"></span>`;
+  const STATE = '<span class="np-cover-state" aria-hidden="true"><svg class="i-play" viewBox="0 0 16 16"><path d="M4.5 2.5v11l9-5.5z"/></svg><svg class="i-pause" viewBox="0 0 16 16"><path d="M3.5 2.5h3v11h-3zM9.5 2.5h3v11h-3z"/></svg></span>';
+  const cover = (t) => `<span class="np-cover"><img src="${t.cover}" alt="" loading="eager" draggable="false" referrerpolicy="no-referrer">${STATE}</span>`;
   // if a cover can't load, draw a simple tile in its place
   document.addEventListener('error', (e) => {
     const img = e.target;
@@ -1755,7 +1776,7 @@ button:focus-visible { outline: 3px solid var(--butter); outline-offset: 4px; }
   dotsEl.innerHTML = TRACKS.map((t, i) => `<button class="np-dot" type="button" aria-label="${t.title}" data-i="${i}"></button>`).join('');
 
   let idx = 0, mode = 'loading', controller = null, api = null, playing = false, awaiting = false, everOpened = false, pillIdx = -1, loadedIdx = 0;
-  let autoSwitch = false, autoSwitchTimer = 0;
+  let quietUntil = 0, hasPlayed = false, gestured = false, wantPlay = false, userPaused = false, armed = false;
   let settle;
   const settled = new Promise((r) => { settle = r; });
   const uri = (i) => `spotify:track:${TRACKS[i].id}`;
@@ -1767,9 +1788,11 @@ button:focus-visible { outline: 3px solid var(--butter); outline-offset: 4px; }
     $('np-prev').disabled = idx === 0;
     $('np-next').disabled = idx === TRACKS.length - 1;
     pillTitle.textContent = t.title;
-    pillSub.textContent = playing ? 'Mac DeMarco' : everOpened ? 'Mac DeMarco · tap to play' : 'Tap to pick our song';
+    pillSub.textContent = playing ? 'Mac DeMarco' : hasPlayed ? 'Paused' : everOpened ? 'Mac DeMarco · tap to play' : 'Tap to pick our song';
     if (pillIdx !== idx) { pillArt.innerHTML = cover(t); pillIdx = idx; }
-    pill.setAttribute('aria-label', `Music: ${t.title} by Mac DeMarco. Change the song`);
+    pillOpen.setAttribute('aria-label', `Music: ${t.title} by Mac DeMarco. Change the song`);
+    pillArt.setAttribute('aria-label', hasPlayed ? (playing ? `Pause ${t.title}` : `Play ${t.title}`) : 'Pick a song');
+    [...track.children].forEach((el, i) => el.classList.toggle('is-loaded', i === loadedIdx));
     pickLink.href = link(idx);
     root.classList.toggle('is-current', playing && loadedIdx === idx);
   }
@@ -1785,16 +1808,19 @@ button:focus-visible { outline: 3px solid var(--butter); outline-offset: 4px; }
     }
     paint();
     if (changed && controller) {
-      const wasPlaying = playing;
       controller.loadUri(uri(idx));
       loadedIdx = idx;
-      if (wasPlaying) {
-        autoSwitch = true;
-        clearTimeout(autoSwitchTimer);
-        autoSwitchTimer = setTimeout(() => { autoSwitch = false; }, 2500);
-        try { controller.play(); } catch (e) { /* a tap on Play this one starts it */ }
-      }
+      userPaused = false;
+      armed = false;
+      if (gestured) autoPlay();
     }
+  }
+  // start the loaded song without closing the picker (browsers allow this once she has tapped the page)
+  function autoPlay() {
+    if (!controller || mode !== 'spotify') { wantPlay = true; return; }
+    wantPlay = false;
+    quietUntil = performance.now() + 3000;
+    try { controller.play(); } catch (e) { /* Play this one starts it */ }
   }
   function setMode(m) {
     if (mode === m || mode === 'fallback') return;
@@ -1806,12 +1832,13 @@ button:focus-visible { outline: 3px solid var(--butter); outline-offset: 4px; }
   function setPlaying(p) {
     const started = p && !playing;
     playing = p;
+    if (p && !hasPlayed) { hasPlayed = true; root.classList.add('has-played'); }
     root.classList.toggle('is-playing', p);
     paint();
     if (!started) return;
-    // the next song carrying on after she switched songs mid-play: keep the picker open
-    if (autoSwitch) { autoSwitch = false; return; }
-    // otherwise music starting while the picker is open means she pressed Play this one
+    // music we started ourselves (first tap, a new song, the next song): keep the picker as it is
+    if (performance.now() < quietUntil) return;
+    // otherwise it was her tap on Play this one landing on Spotify's own button
     if (awaiting || root.dataset.state === 'open') {
       awaiting = false;
       status.textContent = `Playing ${TRACKS[idx].title}`;
@@ -1830,14 +1857,20 @@ button:focus-visible { outline: 3px solid var(--butter); outline-offset: 4px; }
         const f = embed.querySelector('iframe');
         if (f) { f.tabIndex = -1; f.setAttribute('aria-hidden', 'true'); f.title = 'Spotify player'; }
         fitHit();
+        if (wantPlay && gestured && !userPaused) autoPlay();
       });
-      let lastPos = 0, lastDur = 0;
       c.addListener('playback_update', (e) => {
         const d = (e && e.data) || {};
-        const ended = d.isPaused && playing && lastDur > 0 && lastDur - lastPos < 1500;
-        lastPos = d.position || 0;
-        lastDur = d.duration || lastDur;
-        if (ended) { lastPos = 0; try { c.play(); } catch (err) { /* needs a tap */ } return; }
+        const dur = d.duration || 0, pos = d.position || 0;
+        // only count an ending once this song has really been playing (ignores late reports from the last one)
+        if (d.isPaused === false && dur > 0 && pos > 0 && pos < dur - 1000) armed = true;
+        if (armed && dur > 0 && pos >= dur - 300) {
+          // the song (or its 30-second clip) finished: go straight on to the next one
+          armed = false;
+          setPlaying(false);
+          select((loadedIdx + 1) % TRACKS.length);
+          return;
+        }
         setPlaying(d.isPaused === false && !d.isBuffering);
       });
     });
@@ -1854,7 +1887,7 @@ button:focus-visible { outline: 3px solid var(--butter); outline-offset: 4px; }
 
   function open() {
     root.dataset.state = 'open';
-    pill.setAttribute('aria-expanded', 'true');
+    pillOpen.setAttribute('aria-expanded', 'true');
     if (!everOpened) {
       everOpened = true;
       requestAnimationFrame(() => { track.scrollLeft = idx * track.clientWidth; });
@@ -1865,7 +1898,7 @@ button:focus-visible { outline: 3px solid var(--butter); outline-offset: 4px; }
   }
   function collapse() {
     root.dataset.state = 'closed';
-    pill.setAttribute('aria-expanded', 'false');
+    pillOpen.setAttribute('aria-expanded', 'false');
     paint();
     settle();
   }
@@ -1892,19 +1925,29 @@ button:focus-visible { outline: 3px solid var(--butter); outline-offset: 4px; }
       if (i !== idx) select(i, true);
     }, 110);
   }, { passive: true });
-  let drag = null;
+  let drag = null, justDragged = false;
   track.addEventListener('pointerdown', (e) => {
     if (e.pointerType !== 'mouse') return;
-    drag = { x: e.clientX, left: track.scrollLeft };
-    track.classList.add('dragging');
-    track.setPointerCapture(e.pointerId);
+    drag = { x: e.clientX, left: track.scrollLeft, id: e.pointerId, moving: false };
   });
-  track.addEventListener('pointermove', (e) => { if (drag) track.scrollLeft = drag.left - (e.clientX - drag.x); });
+  track.addEventListener('pointermove', (e) => {
+    if (!drag) return;
+    if (!drag.moving && Math.abs(e.clientX - drag.x) > 5) {
+      drag.moving = true;
+      track.classList.add('dragging');
+      try { track.setPointerCapture(drag.id); } catch (err) { /* ignore */ }
+    }
+    if (drag.moving) track.scrollLeft = drag.left - (e.clientX - drag.x);
+  });
   const endDrag = () => {
     if (!drag) return;
+    const wasMoving = drag.moving;
     const moved = track.scrollLeft - drag.left;
     drag = null;
     track.classList.remove('dragging');
+    if (!wasMoving) return;
+    justDragged = true;
+    setTimeout(() => { justDragged = false; }, 0);
     const w = Math.max(1, track.clientWidth);
     select(Math.abs(moved) > w * 0.18 ? idx + Math.sign(moved) : idx);
   };
@@ -1918,16 +1961,43 @@ button:focus-visible { outline: 3px solid var(--butter); outline-offset: 4px; }
   $('np-next').addEventListener('click', () => select(idx + 1));
   dotsEl.addEventListener('click', (e) => { const d = e.target.closest('.np-dot'); if (d) select(+d.dataset.i); });
 
-  pill.addEventListener('click', open);
+  // tapping an album cover pauses or resumes the song
+  function toggle(coverEl) {
+    if (!controller) return;
+    userPaused = playing;
+    // resuming shouldn't close the picker
+    if (!playing) quietUntil = performance.now() + 3000;
+    try { controller.togglePlay(); } catch (e) { /* ignore */ }
+    if (coverEl) { coverEl.classList.remove('flash'); void coverEl.offsetWidth; coverEl.classList.add('flash'); }
+  }
+  pillArt.addEventListener('click', () => {
+    if (!hasPlayed || mode !== 'spotify') { open(); return; }
+    toggle(pillArt.querySelector('.np-cover'));
+  });
+  track.addEventListener('click', (e) => {
+    if (justDragged) return;
+    const c = e.target.closest('.np-cover');
+    if (!c || c.closest('.np-slide') !== track.children[idx] || mode !== 'spotify' || !controller) return;
+    if (!hasPlayed) { awaiting = true; try { controller.play(); } catch (err) { /* Play this one starts it */ } return; }
+    toggle(c);
+  });
+  pillOpen.addEventListener('click', open);
   $('np-x').addEventListener('click', collapse);
-  // reached when the song is already playing (collapse), before the player is ready, or from the keyboard
+  // Play this one closes the picker. When nothing is playing yet, her tap lands on Spotify's own
+  // play button (layered underneath) and the song starting closes it; this handler covers the rest.
   pick.addEventListener('click', () => {
-    if (playing && loadedIdx === idx) { collapse(); return; }
-    if (!controller) { status.textContent = 'The player is still loading'; return; }
-    awaiting = true;
-    try { controller.play(); } catch (e) { /* a direct tap on the button starts it */ }
+    if (!playing) { userPaused = false; autoPlay(); }
+    collapse();
   });
   pickLink.addEventListener('click', () => setTimeout(collapse, 300));
+
+  const firstGesture = () => {
+    if (gestured) return;
+    gestured = true;
+    if (!playing && !userPaused) autoPlay();
+  };
+  document.addEventListener('pointerdown', firstGesture, true);
+  document.addEventListener('keydown', firstGesture, true);
 
   // opens on its own shortly after the page loads; tapping the page (e.g. the envelope) tucks it away
   setTimeout(() => { if (!everOpened) open(); }, 900);
