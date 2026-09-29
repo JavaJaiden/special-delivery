@@ -1249,10 +1249,13 @@ button:focus-visible { outline: 3px solid var(--butter); outline-offset: 4px; }
       if (skipTyping) break;
       c.el.classList.add('on');
       c.el.appendChild(caret);
-      let d = 14 + Math.random() * 12;
-      if (',;'.includes(c.ch)) d += 90;
-      if ('.!?…'.includes(c.ch)) d += 150;
-      if (c.end) d += 180;
+      // paced like someone saying it: steady letters, a beat between words, pauses at commas and full stops
+      let d = 40 + Math.random() * 22;
+      if (c.ch === ' ') d += 30;
+      if (',;'.includes(c.ch)) d += 280;
+      if ('.!?'.includes(c.ch)) d += 440;
+      if (c.ch === '…') d += 600;
+      if (c.end) d += 420;
       await sleep(d);
     }
     chars.forEach((c) => c.el.classList.add('on'));
@@ -1714,10 +1717,10 @@ button:focus-visible { outline: 3px solid var(--butter); outline-offset: 4px; }
   const CDN = 'https://image-cdn-ak.spotifycdn.com/image/';
   const CDN_FA = 'https://image-cdn-fa.spotifycdn.com/image/';
   const TRACKS = [
-    { id: '0WiMJIxYYEex2AqhRqzV3u', title: 'For the First Time', album: 'This Old Dog', year: 2017, ms: 182306, cover: CDN_FA + 'ab67616d00001e023f7561fb0914fb1f5f101f0a', glyph: 'heart', art: ['#CFE6FF', '#7CA9DE', '#2B3A6B', '#FFFFFF'] },
     { id: '7EAMXbLcL0qXmciM5SwMh2', title: 'Heart to Heart', album: 'Here Comes the Cowboy', year: 2019, ms: 211140, cover: CDN_FA + 'ab67616d00001e02fa1323bb50728c7489980672', glyph: 'heart', art: ['#FFE6B8', '#E9A06B', '#6B3B2A', '#FFF7EA'] },
     { id: '38tfi9dtBQQ5Wyt7EL0G3z', title: 'My Kind of Woman', album: '2', year: 2012, ms: 190845, cover: CDN + 'ab67616d00001e02ecfde7feaa212a1b60a197a1', glyph: 'heart', art: ['#FFC48C', '#F2706B', '#8E2F4F', '#FFF1E0'] },
     { id: '3oUn55qKRZ1JFzfQNbJjS1', title: 'I Like Her', album: 'One Wayne G', year: 2023, ms: 136888, cover: CDN_FA + 'ab67616d00001e0240461e96808378ae2787a7e4', glyph: 'heart', art: ['#FFD9EC', '#C48BD9', '#3F2A63', '#FFF6FC'] },
+    { id: '0WiMJIxYYEex2AqhRqzV3u', title: 'For the First Time', album: 'This Old Dog', year: 2017, ms: 182306, cover: CDN_FA + 'ab67616d00001e023f7561fb0914fb1f5f101f0a', glyph: 'heart', art: ['#CFE6FF', '#7CA9DE', '#2B3A6B', '#FFFFFF'] },
     { id: '2tpApbNkMvjEflWib6dthR', title: 'Still Together', album: '2', year: 2012, ms: 219370, cover: CDN + 'ab67616d00001e02ecfde7feaa212a1b60a197a1', glyph: 'heart', art: ['#FFD7A8', '#E88D72', '#5F3A6E', '#FFF6EA'] },
     { id: '7nxi8DUA9Iw6nnpGN3M9Zd', title: 'Let My Baby Stay', album: 'Salad Days', year: 2014, ms: 248171, cover: CDN + 'ab67616d00001e027da53b49b2eb7b7a695d9cca', glyph: 'heart', art: ['#D9F0A3', '#78C28A', '#1F5C5A', '#F4FFE9'] },
     { id: '1Snko28yJOihcRVXs9dAo9', title: 'Chamber of Reflection', album: 'Salad Days', year: 2014, ms: 231723, cover: CDN_FA + 'ab67616d00001e028b221f2ccf777ae0d4b0db50', glyph: 'heart', art: ['#B9E3D2', '#4E9A8F', '#1B2F4A', '#EFFFFA'] },
